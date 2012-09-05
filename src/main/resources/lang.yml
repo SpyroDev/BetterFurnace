@@ -1,0 +1,4 @@
+# Language File: en_UK
+plugin:
+    enabled: "Plugin sucessfully loaded."
+    disabled: "Plugin has been disabled."
