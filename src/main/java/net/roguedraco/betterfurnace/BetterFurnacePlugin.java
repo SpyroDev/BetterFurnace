@@ -39,6 +39,9 @@ public class BetterFurnacePlugin extends JavaPlugin {
 		BetterFurnacePlugin.pluginName = this.getDescription().getName();
 		BetterFurnacePlugin.pluginVersion = this.getDescription().getVersion();
 		
+		BetterFurnacePlugin.lang = new Lang(this);
+		lang.setupLanguage();
+		
 		if (getServer().getPluginManager().getPlugin("Vault") != null) {
 			setupPermissions();
 		} else {

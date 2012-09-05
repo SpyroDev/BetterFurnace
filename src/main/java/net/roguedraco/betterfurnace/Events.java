@@ -11,8 +11,9 @@ import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.material.MaterialData;
 
 public class Events implements Listener {
 
@@ -23,10 +24,14 @@ public class Events implements Listener {
 			BetterFurnacePlugin.getUpdater().updateNeeded(event.getPlayer());
 		}
 	}
-	
 	@EventHandler
-	public void onPlayerInteract(PlayerInteractEvent event) {
-		checkBlock(event.getClickedBlock());
+	public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
+		 
+		Material bucket = event.getBucket();
+		 
+		if (bucket.toString().contains("LAVA")) {
+			checkBlock(event.getBlockClicked().getRelative(event.getBlockFace()));
+		}
 	}
 
 	@EventHandler
@@ -51,8 +56,11 @@ public class Events implements Listener {
 	
 	public void checkBlock(Block block) {
 		Material material = block.getType();
-		if(material.equals(Material.FIRE) || material.equals(Material.LAVA) || material.equals(Material.LAVA_BUCKET)) {
+		if(material.equals(Material.FIRE) || material.equals(Material.LAVA) || material.equals(Material.LAVA_BUCKET) || material.equals(Material.STATIONARY_LAVA)) {
 			powerFurnace(block);
+		}
+		else if(material.equals(Material.FURNACE) || material.equals(Material.BURNING_FURNACE)) {
+			checkBlock(block.getRelative(BlockFace.DOWN));
 		}
 		else {
 			unpowerFurnace(block);
@@ -60,7 +68,7 @@ public class Events implements Listener {
 	}
 	
 	public boolean hasFurnace(Block block) {
-		if(block.getRelative(BlockFace.UP).getType().equals(Material.FURNACE)) {
+		if(block.getRelative(BlockFace.UP).getType().equals(Material.FURNACE) || block.getRelative(BlockFace.UP).getType().equals(Material.BURNING_FURNACE)) {
 			return true;
 		}
 		return false;
@@ -70,7 +78,14 @@ public class Events implements Listener {
 		if(hasFurnace(block)) {
 			Furnace furnace = (Furnace) block.getRelative(BlockFace.UP).getState();
 			Short time = Short.parseShort("10000");
+			MaterialData tempData = furnace.getData();
+			furnace.setType(Material.BURNING_FURNACE);
+			furnace.setData(tempData);
+			furnace.update(true);
+			furnace.setCookTime(time);
 			furnace.setBurnTime(time);
+			furnace.update(true);
+			BetterFurnacePlugin.debug("Furnace Powered");
 		}
 	}
 	
@@ -78,7 +93,14 @@ public class Events implements Listener {
 		if(hasFurnace(block)) {
 			Furnace furnace = (Furnace) block.getRelative(BlockFace.UP).getState();
 			Short time = Short.parseShort("0");
+
+			MaterialData tempData = furnace.getData();
+			furnace.setType(Material.FURNACE);
+			furnace.setData(tempData);
+			furnace.setCookTime(time);
 			furnace.setBurnTime(time);
+			furnace.update(true);
+			BetterFurnacePlugin.debug("Furnace Un-Powered");
 		}
 	}
 
